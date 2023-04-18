@@ -5,6 +5,38 @@
 
 #define THRESHOLD (uint8_t) 120
 
+typedef struct {
+  uint32_t x = 0;
+  uint32_t y = 0;
+} pixel_position_t;
+
+pixel_position_t get_position(size_t index, size_t width) {
+  pixel_position_t position;
+  position.x = index % width;
+  position.y = index / width;
+  return position;
+}
+
+pixel_position_t get_spot(uint32_t x, uint32_t y, uint32_t weight) {
+  pixel_position_t position;
+  if (weight == 0){
+    return position;
+  }
+  position.x = x / weight;
+  position.y = y / weight;
+  return position;
+}
+
+void print_pixel_sector(pixel_position_t position) {
+  if (150 < position.x && position.x < 170 && 110 < position.y && position.y < 130){
+    Serial.printf("Centrum, %d %d \n", position.x, position.y);
+  }
+  else {
+    Serial.printf("X: %d, Y: %d \n", position.x, position.y);
+  }
+}
+
+
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE); // Inicjalizacja portu szeregowego
   Serial.println("ESP32-CAM started");
@@ -44,39 +76,39 @@ void setup() {
   }
 }
 
+
+
 void loop() {
   
   camera_fb_t * fb = esp_camera_fb_get();
-  if (!fb) {
+  if (!fb) {  // Null czy nullptr?
     Serial.println("Camera capture failed");
     return;
   }
   
-  long t_piksels = 0;
-
-  for (size_t i = 0; i < fb->len; i++) {
-    if (fb->buf[i] > THRESHOLD) {
-      t_piksels += 1;
-    }
-    else {
-      fb->buf[i] = 0;
-    }
-  }
+  uint32_t x = 0;
+  uint32_t y = 0;
+  uint32_t weight = 0;
 
   uint32_t sum_pixel_value = 0;
   for (size_t i = 0; i < fb->len; i++) {
-    sum_pixel_value += fb->buf[i];
+    if(fb->buf[i] > THRESHOLD) {
+      pixel_position_t position = get_position(i, fb->width);
+      weight += fb->buf[i];
+      x += position.x * fb->buf[i];
+      y += position.y * fb->buf[i];
+    }
   }
-  uint8_t avg_pixel_value = sum_pixel_value / fb->len;
+
+
   
-  // Wyświetl wartość najjaśniejszego piksela
-  Serial.print("Threshold piksels find: ");
-  Serial.println(t_piksels);
-  Serial.print("Avg pixel value: ");
-  Serial.println(avg_pixel_value);
+  pixel_position_t spot = get_spot(x, y, weight);
+  
+  print_pixel_sector(spot);
+
   // Zwolnij pamięć po zdjęciu
   esp_camera_fb_return(fb);
   
   // Poczekaj 0.5 sekundy przed wykonaniem kolejnego zdjęcia
-  delay(500);
+  delay(200);
 }
