@@ -8,8 +8,8 @@
 
 
 void setup() {
-  Serial.begin(SERIAL_BAUD_RATE); // Inicjalizacja portu szeregowego
-  Serial.println("ESP32-CAM started");
+  Serial.begin(SERIAL_BAUD_RATE);
+  Serial2.begin(SERIAL_BAUD_RATE, SERIAL_8N1, 2, 14);  
   
   // Inicjalizacja kamery
   camera_config_t config;
