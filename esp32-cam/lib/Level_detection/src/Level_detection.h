@@ -1,4 +1,5 @@
 #ifndef LEVEL_DETECTION_H
+#define LEVEL_DETECTION_H
 #include <Arduino.h>
 
 typedef struct {
