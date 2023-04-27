@@ -12,5 +12,5 @@ pixel_position_t get_position(size_t index, size_t width);
 pixel_position_t get_spot(uint32_t x, uint32_t y, uint32_t weight);
 
 
-void print_pixel_sector(pixel_position_t position);
+int is_center(pixel_position_t position);
 #endif

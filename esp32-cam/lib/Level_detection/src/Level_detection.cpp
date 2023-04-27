@@ -22,11 +22,9 @@ pixel_position_t get_spot(uint32_t x, uint32_t y, uint32_t weight) {
   return position;
 }
 
-void print_pixel_sector(pixel_position_t position) {
+int is_center(pixel_position_t position) {
   if (150 < position.x && position.x < 170 && 110 < position.y && position.y < 130){
-    Serial.printf("Centrum, %d %d \n", position.x, position.y);
+   return 1;
   }
-  else {
-    Serial.printf("X: %d, Y: %d \n", position.x, position.y);
-  }
+  return 0;
 }
