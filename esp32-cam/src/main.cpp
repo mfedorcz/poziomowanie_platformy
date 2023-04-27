@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "esp_camera.h"
 #include <Level_detection.h>
+#include <Uart_comm.h>
+#include <Motor_movement.h>
 
 #define SERIAL_BAUD_RATE 115200
 
@@ -49,10 +51,11 @@ void setup() {
 
 
 void loop() {
+  wait_for_signal();
   
   camera_fb_t * fb = esp_camera_fb_get();
-  if (!fb) {  // Null czy nullptr?
-    Serial.println("Camera capture failed");
+  if (!fb) {  
+    Serial.println("ERROR");
     return;
   }
   
@@ -74,11 +77,14 @@ void loop() {
   
   pixel_position_t spot = get_spot(x, y, weight);
   
-  print_pixel_sector(spot);
+  
 
-  // Zwolnij pamięć po zdjęciu
+  if (is_center(spot))
+  {
+    wake_neighbor();
+  }
+  
   esp_camera_fb_return(fb);
   
-  // Poczekaj 0.5 sekundy przed wykonaniem kolejnego zdjęcia
   delay(200);
 }
