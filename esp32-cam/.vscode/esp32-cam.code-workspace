@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"array": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp",
+			"utility": "cpp",
+			"arduino.h": "c",
+			"deque": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp",
+			"*.tcc": "cpp",
+			"memory": "cpp",
+			"random": "cpp"
+		}
+	}
+}
