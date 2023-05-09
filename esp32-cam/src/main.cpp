@@ -4,15 +4,32 @@
 #include <Uart_comm.h>
 #include <Motor_movement.h>
 
+// MODE 
+#define INITIAL_CAMERA
+#define DEBUG
+
+// PINS
+
+
 #define SERIAL_BAUD_RATE 115200
 
 #define THRESHOLD (uint8_t) 120
 
+#define FLASH_PIN (int8_t) 4
+
+#define SLAVE_TX (int8_t) 14
+#define SLAVE_RX (int8_t) 2
+
 
 void setup() {
+  // UART
   Serial.begin(SERIAL_BAUD_RATE);
-  Serial2.begin(SERIAL_BAUD_RATE, SERIAL_8N1, 2, 14);  
+  Serial2.begin(SERIAL_BAUD_RATE, SERIAL_8N1, SLAVE_RX, SLAVE_TX);  
   
+  // LED indicator
+  #ifdef DEBUG
+  pinMode(FLASH_PIN, OUTPUT);
+  #endif
   // Inicjalizacja kamery
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -48,11 +65,18 @@ void setup() {
   }
 }
 
-
-
-void loop() {
+void main_loop() {
+  while (1)
+  {
+    
+  #ifdef DEBUG
+  digitalWrite(FLASH_PIN, HIGH);
   wait_for_signal();
-  
+  digitalWrite(FLASH_PIN, LOW);
+  # else
+  wait_for_signal();
+  #endif
+
   camera_fb_t * fb = esp_camera_fb_get();
   if (!fb) {  
     Serial.println("ERROR");
@@ -87,4 +111,14 @@ void loop() {
   esp_camera_fb_return(fb);
   
   delay(200);
+  }
+  
+  
+}
+
+void loop() {
+  #ifdef INITIAL_CAMERA
+    wake_neighbor();  
+  #endif
+  main_loop();
 }
