@@ -5,7 +5,7 @@
 #include <Motor_movement.h>
 
 // MODE 
-#define INITIAL_CAMERA
+//#define INITIAL_CAMERA
 #define DEBUG
 
 // PINS
@@ -63,12 +63,13 @@ void setup() {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+
+  #ifdef INITIAL_CAMERA
+  wake_neighbor();
+  #endif
 }
 
-void main_loop() {
-  while (1)
-  {
-    
+void loop() {
   #ifdef DEBUG
   digitalWrite(FLASH_PIN, HIGH);
   wait_for_signal();
@@ -77,48 +78,41 @@ void main_loop() {
   wait_for_signal();
   #endif
 
-  camera_fb_t * fb = esp_camera_fb_get();
-  if (!fb) {  
-    Serial.println("ERROR");
-    return;
-  }
-  
-  uint32_t x = 0;
-  uint32_t y = 0;
-  uint32_t weight = 0;
+  while (1)
+  {
+    camera_fb_t * fb = esp_camera_fb_get();
+    if (!fb) {  
+      Serial.println("ERROR");
+      return;
+    }
+    
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t weight = 0;
 
-  uint32_t sum_pixel_value = 0;
-  for (size_t i = 0; i < fb->len; i++) {
-    if(fb->buf[i] > THRESHOLD) {
-      pixel_position_t position = get_position(i, fb->width);
-      weight += fb->buf[i];
-      x += position.x * fb->buf[i];
-      y += position.y * fb->buf[i];
+    uint32_t sum_pixel_value = 0;
+    for (size_t i = 0; i < fb->len; i++) {
+      if(fb->buf[i] > THRESHOLD) {
+        pixel_position_t position = get_position(i, fb->width);
+        weight += fb->buf[i];
+        x += position.x * fb->buf[i];
+        y += position.y * fb->buf[i];
+      }
+    }
+
+
+    
+    pixel_position_t spot = get_spot(x, y, weight);
+    
+    
+    esp_camera_fb_return(fb);
+    if (is_center(spot))
+    {
+      break;
     }
   }
-
-
+  wake_neighbor();
   
-  pixel_position_t spot = get_spot(x, y, weight);
-  
-  
-
-  if (is_center(spot))
-  {
-    wake_neighbor();
-  }
-  
-  esp_camera_fb_return(fb);
   
   delay(200);
-  }
-  
-  
-}
-
-void loop() {
-  #ifdef INITIAL_CAMERA
-    wake_neighbor();  
-  #endif
-  main_loop();
 }
