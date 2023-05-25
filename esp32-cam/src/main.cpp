@@ -6,14 +6,15 @@
 
 // MODE 
 //#define INITIAL_CAMERA  /* comment for slaves */
-#define DEBUG
+#define DEBUG_CAMERA
+//#define DEBUG_UART
 
 // PINS
 
 
 #define SERIAL_BAUD_RATE 115200
 
-#define THRESHOLD (uint8_t) 220 /* default treshold 120 */ 
+#define THRESHOLD (uint8_t) 230 /* default treshold 120 */ 
 
 #define FLASH_PIN (int8_t) 4
 
@@ -54,8 +55,8 @@ void setup() {
   config.pixel_format = PIXFORMAT_GRAYSCALE;
   
   // Konfiguracja rozmiaru obrazu
-  config.frame_size = FRAMESIZE_QVGA;
-  config.jpeg_quality = 12;
+  config.frame_size = FRAMESIZE_HD;
+  config.jpeg_quality = 50;
   config.fb_count = 1;
   
   esp_err_t err = esp_camera_init(&config);
@@ -70,12 +71,14 @@ void setup() {
 }
 
 void loop() {
-#ifdef DEBUG
+#ifdef DEBUG_UART
   digitalWrite(FLASH_PIN, HIGH);
   wait_for_signal();
   digitalWrite(FLASH_PIN, LOW);
-# else
-  wait_for_signal();
+# elif defined DEBUG_CAMERA
+  
+#else
+  wake_neighbor();
 #endif
 
   while (1)
@@ -90,6 +93,7 @@ void loop() {
     uint32_t x = 0;
     uint32_t y = 0;
     uint32_t weight = 0;
+    u_short result;
 
     uint32_t sum_pixel_value = 0;
     for (size_t i = 0; i < fb->len; i++) {
@@ -103,15 +107,18 @@ void loop() {
     }
 
     pixel_position_t spot = get_spot(x, y, weight);
-    
+    result = is_center(spot);
     esp_camera_fb_return(fb);
-    if (is_center(spot) && treshold_count > 20)
-    {
-      break;
-    }
+    
+    #ifdef DEBUG_CAMERA
+    Serial.printf("Point: x:%d, y:%d, is_center: %d\n", spot.x, spot.y, result);
+    #endif
+    
   }
-  wake_neighbor();
-  
+
+  #ifndef DEBUG_CAMERA
+    wake_neighbor();
+  #endif
   
   delay(200);
 }
