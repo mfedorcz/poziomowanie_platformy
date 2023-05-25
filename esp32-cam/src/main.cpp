@@ -5,7 +5,7 @@
 #include <Motor_movement.h>
 
 // MODE 
-//#define INITIAL_CAMERA
+//#define INITIAL_CAMERA  /* comment for slaves */
 #define DEBUG
 
 // PINS
@@ -13,7 +13,7 @@
 
 #define SERIAL_BAUD_RATE 115200
 
-#define THRESHOLD (uint8_t) 120
+#define THRESHOLD (uint8_t) 220 /* default treshold 120 */ 
 
 #define FLASH_PIN (int8_t) 4
 
@@ -27,9 +27,9 @@ void setup() {
   Serial2.begin(SERIAL_BAUD_RATE, SERIAL_8N1, SLAVE_RX, SLAVE_TX);  
   
   // LED indicator
-  #ifdef DEBUG
+#ifdef DEBUG
   pinMode(FLASH_PIN, OUTPUT);
-  #endif
+#endif
   // Inicjalizacja kamery
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -64,22 +64,23 @@ void setup() {
     return;
   }
 
-  #ifdef INITIAL_CAMERA
+#ifdef INITIAL_CAMERA
   wake_neighbor();
-  #endif
+#endif
 }
 
 void loop() {
-  #ifdef DEBUG
+#ifdef DEBUG
   digitalWrite(FLASH_PIN, HIGH);
   wait_for_signal();
   digitalWrite(FLASH_PIN, LOW);
-  # else
+# else
   wait_for_signal();
-  #endif
+#endif
 
   while (1)
   {
+    int treshold_count = 0;
     camera_fb_t * fb = esp_camera_fb_get();
     if (!fb) {  
       Serial.println("ERROR");
@@ -93,6 +94,7 @@ void loop() {
     uint32_t sum_pixel_value = 0;
     for (size_t i = 0; i < fb->len; i++) {
       if(fb->buf[i] > THRESHOLD) {
+        treshold_count++;
         pixel_position_t position = get_position(i, fb->width);
         weight += fb->buf[i];
         x += position.x * fb->buf[i];
@@ -100,13 +102,10 @@ void loop() {
       }
     }
 
-
-    
     pixel_position_t spot = get_spot(x, y, weight);
     
-    
     esp_camera_fb_return(fb);
-    if (is_center(spot))
+    if (is_center(spot) && treshold_count > 20)
     {
       break;
     }

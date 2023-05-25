@@ -2,9 +2,8 @@
 #include <esp_camera.h>
 
 void wake_neighbor(){
-    unsigned long start = millis();
     Serial.print("WAKE");
-    while (!Serial.find("ACK") && (millis() - start <= 1000))
+    while (!Serial.find("ACK"))
     {
         Serial.print("WAKE");
     }
@@ -15,5 +14,9 @@ void wait_for_signal(){
     while (!Serial2.find("WAKE"))
     {
     }
-    Serial2.print("ACK");
+    unsigned long start = millis();
+    while (millis() - start <= 3000)
+    {
+        Serial2.print("ACK");
+    }
 }
