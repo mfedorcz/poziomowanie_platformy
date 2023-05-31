@@ -18,7 +18,9 @@
 			"vector": "cpp",
 			"*.tcc": "cpp",
 			"memory": "cpp",
-			"random": "cpp"
+			"random": "cpp",
+			"functional": "cpp",
+			"limits": "cpp"
 		}
 	}
 }
